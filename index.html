@@ -1,28 +1,172 @@
-!DOCTYPE html>
+DOCTYPE html>
 <html>
-  <head>
-    <title>Zandrrrr Games</title>
-    <style>
-      body { font-family: sans-serif; background:#050816; color:white; text-align:center; }
-      h1 { margin-top:40px; }
-      a {
-        display:block;
-        margin:10px auto;
-        padding:12px 20px;
-        width:220px;
-        border-radius:8px;
-        background:#111827;
-        color:white;
-        text-decoration:none;
-      }
-      a:hover { background:#1f2937; }
-    </style>
-  </head>
-  <body>
-    <h1>Zandrrrr Games 🎮</h1>
-    <a href="games/clicker/">Clicker Game</a>
-    <a href="games/snake/">Snake</a>
-    <a href="games/pong/">Pong</a>
-    <a href="games/quiz/">Quiz Game</a>
-  </body>
+<head>
+  <title>Zander Arcade</title>
+  <style>
+    body { margin:0; font-family:sans-serif; background:#0a0a0a; color:white; }
+    #menu, #game { padding:20px; text-align:center; }
+    .btn {
+      display:block; margin:10px auto; padding:15px 20px;
+      width:250px; background:#1f1f1f; color:white;
+      border-radius:10px; text-decoration:none; cursor:pointer;
+    }
+    .btn:hover { background:#333; }
+    canvas { background:black; margin-top:20px; }
+  </style>
+</head>
+
+<body>
+
+<div id="menu">
+  <h1>🎮 ZANDER ARCADE 🎮</h1>
+  <button class="btn" onclick="loadGame('clicker')">Clicker</button>
+  <button class="btn" onclick="loadGame('snake')">Snake</button>
+  <button class="btn" onclick="loadGame('pong')">Pong</button>
+  <button class="btn" onclick="loadGame('quiz')">Quiz</button>
+  <button class="btn" onclick="loadGame('stacker')">Stacker</button>
+  <button class="btn" onclick="loadGame('shake')">Shake</button>
+</div>
+
+<div id="game" style="display:none;"></div>
+
+<script>
+function loadGame(name) {
+  document.getElementById("menu").style.display = "none";
+  document.getElementById("game").style.display = "block";
+
+  if (name === "clicker") game.innerHTML = `
+    <h1>Clicker Game</h1>
+    <h2 id='count'>0</h2>
+    <button class='btn' onclick='count++ ; document.getElementById("count").innerText = count;'>Click Me</button>
+  `;
+  if (name === "snake") startSnake();
+  if (name === "pong") startPong();
+  if (name === "quiz") startQuiz();
+  if (name === "stacker") startStacker();
+  if (name === "shake") startShake();
+}
+
+let count = 0;
+
+/* ---------------- SNAKE GAME ---------------- */
+function startSnake() {
+  game.innerHTML = "<h1>Snake</h1><canvas id='snake' width='300' height='300'></canvas>";
+  let canvas = document.getElementById("snake");
+  let ctx = canvas.getContext("2d");
+  let px = 10, py = 10, xv = 1, yv = 0;
+  let trail = [], tail = 5;
+  let ax = 15, ay = 15;
+
+  document.onkeydown = e => {
+    if (e.key === "ArrowLeft") xv = -1, yv = 0;
+    if (e.key === "ArrowRight") xv = 1, yv = 0;
+    if (e.key === "ArrowUp") xv = 0, yv = -1;
+    if (e.key === "ArrowDown") xv = 0, yv = 1;
+  };
+
+  setInterval(() => {
+    px += xv; py += yv;
+    if (px < 0) px = 29; if (px > 29) px = 0;
+    if (py < 0) py = 29; if (py > 29) py = 0;
+
+    ctx.fillStyle = "black"; ctx.fillRect(0,0,300,300);
+    ctx.fillStyle = "lime"; ctx.fillRect(ax*10, ay*10, 10,10);
+
+    ctx.fillStyle = "white";
+    for (let i=0; i<trail.length; i++) {
+      ctx.fillRect(trail[i].x*10, trail[i].y*10, 10,10);
+      if (trail[i].x === px && trail[i].y === py) tail = 5;
+    }
+
+    trail.push({x:px,y:py});
+    while (trail.length > tail) trail.shift();
+
+    if (ax === px && ay === py) {
+      tail++;
+      ax = Math.floor(Math.random()*30);
+      ay = Math.floor(Math.random()*30);
+    }
+  }, 100);
+}
+
+/* ---------------- PONG GAME ---------------- */
+function startPong() {
+  game.innerHTML = "<h1>Pong</h1><canvas id='pong' width='400' height='300'></canvas>";
+  let c = document.getElementById("pong");
+  let ctx = c.getContext("2d");
+
+  let ball = {x:200,y:150,dx:3,dy:3};
+  let paddle = {x:180,y:280,w:80,h:10};
+
+  document.onmousemove = e => {
+    paddle.x = e.clientX - c.offsetLeft - paddle.w/2;
+  };
+
+  setInterval(() => {
+    ctx.fillStyle="black"; ctx.fillRect(0,0,400,300);
+
+    ball.x += ball.dx; ball.y += ball.dy;
+
+    if (ball.x<0 || ball.x>400) ball.dx *= -1;
+    if (ball.y<0) ball.dy *= -1;
+
+    if (ball.y>270 && ball.x>paddle.x && ball.x<paddle.x+paddle.w) {
+      ball.dy *= -1;
+    }
+
+    if (ball.y>300) ball.x=200, ball.y=150;
+
+    ctx.fillStyle="white";
+    ctx.fillRect(paddle.x,paddle.y,paddle.w,paddle.h);
+    ctx.beginPath(); ctx.arc(ball.x,ball.y,8,0,Math.PI*2); ctx.fill();
+  }, 16);
+}
+
+/* ---------------- QUIZ GAME ---------------- */
+function startQuiz() {
+  game.innerHTML = `
+    <h1>Quiz Game</h1>
+    <p id='q'></p>
+    <button class='btn' onclick='answer(0)' id='a0'></button>
+    <button class='btn' onclick='answer(1)' id='a1'></button>
+    <button class='btn' onclick='answer(2)' id='a2'></button>
+  `;
+
+  let questions = [
+    {q:"2+2?", a:["3","4","5"], c:1},
+    {q:"Capital of France?", a:["Paris","Rome","Berlin"], c:0},
+    {q:"Best letter?", a:["A","Z","Q"], c:1}
+  ];
+
+  let i = 0;
+
+  function show() {
+    q.innerText = questions[i].q;
+    a0.innerText = questions[i].a[0];
+    a1.innerText = questions[i].a[1];
+    a2.innerText = questions[i].a[2];
+  }
+
+  window.answer = x => {
+    if (x === questions[i].c) alert("Correct!");
+    else alert("Wrong!");
+    i = (i+1) % questions.length;
+    show();
+  };
+
+  show();
+}
+
+/* ---------------- STACKER GAME ---------------- */
+function startStacker() {
+  game.innerHTML = "<h1>Stacker</h1><p>Tap to stack blocks!</p>";
+}
+
+/* ---------------- SHAKE GAME ---------------- */
+function startShake() {
+  game.innerHTML = "<h1>Shake Game</h1><p>Shake your device!</p>";
+}
+</script>
+
+</body>
 </html>
